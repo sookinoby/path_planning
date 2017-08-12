@@ -15,6 +15,8 @@ using namespace std;
 // for convenience
 using json = nlohmann::json;
 
+// making sensor_fusion a global variable for easy access.
+
 // For converting back and forth between radians and degrees.
 constexpr double pi() { return M_PI; }
 double deg2rad(double x) { return x * pi() / 180; }
@@ -159,6 +161,59 @@ vector<double> getXY(double s, double d, vector<double> maps_s, vector<double> m
     return {x,y};
 
 }
+vector<double> findNearestCarFrontOfEgo(vector<vector<double>> sensor_fusion,int lane,double car_s,int prev_size)
+{
+    double min_distance = 10000;
+    double car_id = -1;
+    double front_speed;
+    double front_distance;
+
+    for(int i=0; i <sensor_fusion.size();i++)
+    {
+
+        float d = sensor_fusion[i][6];
+
+        if(d < (2+4*lane+2) && d > (2+4*lane-2))
+        {
+            int id = sensor_fusion[i][0];
+            double  vx = sensor_fusion[i][3];
+            double vy= sensor_fusion[i][4];
+            double check_speed_front = sqrt(vx*vx+vy*vy);
+            double check_car_s = sensor_fusion[i][5];
+
+            check_car_s+= ((double)prev_size *.02*check_speed_front);
+            if((check_car_s > car_s) && (check_car_s-car_s) < 30) {
+                min_distance = check_car_s - car_s;
+                car_id = id;
+                front_speed = check_speed_front;
+                front_distance = min_distance;
+            }
+        }
+    }
+    return{car_id,front_distance,front_speed};
+}
+
+
+vector<double> findNearestCarLeftFrontOfEgo(vector<vector<double>> sensor_fusion,int lane,double car_s,int prev_size)
+{
+    return{0,0};
+}
+
+vector<double> findNearestCarRightFrontOfEgo(vector<vector<double>> sensor_fusion,int lane,double car_s,int prev_size)
+{
+    return {0,0};
+}
+
+vector<double> findNearestCarLeftBackOfEgo(vector<vector<double>> sensor_fusion,int lane,double car_s,int prev_size)
+{
+    return {0,0};
+}
+
+vector<double> findNearestCarRightBackOfEgo(vector<vector<double>> sensor_fusion,int lane,double car_s,int prev_size)
+{
+    return {0,0};
+}
+
 
 int main() {
     uWS::Hub h;
@@ -233,7 +288,7 @@ int main() {
                     double end_path_d = j[1]["end_path_d"];
 
                     // Sensor Fusion Data, a list of all other cars on the same side of the road.
-                    auto sensor_fusion = j[1]["sensor_fusion"];
+                    vector<vector<double>> sensor_fusion = j[1]["sensor_fusion"];
 
                     int prev_size = previous_path_x.size();
 
@@ -244,63 +299,22 @@ int main() {
                     bool too_close = false;
                     bool lane_change_needed = false;
 
-                    for(int i=0; i <sensor_fusion.size();i++)
-                    {
+                    double check_speed_front = 0.0;
 
-                        float d = sensor_fusion[i][6];
-                        if(d < (2+4*lane+2) && d > (2+4*lane-2))
-                        {
-                            double  vx = sensor_fusion[i][3];
-                            double vy= sensor_fusion[i][4];
-                            double check_speed = sqrt(vx*vx+vy*vy);
-                            double check_car_s = sensor_fusion[i][5];
-
-                            check_car_s+= ((double)prev_size *.02*check_speed);
-                            if((check_car_s > car_s) && (check_car_s-car_s) < 30) {
-                            too_close = true;
-                            lane_change_needed = true;
-                            }
-                        }
-
-
+                    auto front_car = findNearestCarFrontOfEgo(sensor_fusion,lane,car_s,prev_size);
+                    if(front_car[0] != -1) {
+                        lane_change_needed = true;
+                        too_close = true;
                     }
-                    // prepare lane change left
-                    bool plcl = false;
-                    // prepare lane change right
-                    bool plrl =false;
-                    if(too_close and lane_change_needed)
+
+                    if(too_close == true)
                     {
-                        // left lane change
-                        for(int i=0; i <sensor_fusion.size();i++)
-                        {
-                            if(lane !=0) {
-                                float d = sensor_fusion[i][6];
-                                if (d < (2 + 4 * (lane - 1) + 2) && d > (2 + 4 * (lane - 1) - 2)) {
-                                    double vx = sensor_fusion[i][3];
-                                    double vy = sensor_fusion[i][4];
-                                    double check_speed = sqrt(vx * vx + vy * vy);
-                                    double check_car_s = sensor_fusion[i][5];
-
-                                    check_car_s += ((double) prev_size * .02 * check_speed);
-                                    // car is front of us
-                                    if ((check_car_s > car_s) && (check_car_s - car_s) < 30) {
-                                        if(check_speed)
-                                    }
-                                }
-                            }
-
-
-                        }
-
-
+                        ref_vel -= .224;
                     }
-//                    {
-//                        ref_vel -= .224;
-//                    }
-//                    else if(ref_vel < 49.5)
-//                    {
-//                        ref_vel+=.224;
-//                    }
+                    else if(ref_vel < 49.5)
+                    {
+                        ref_vel+=.224;
+                    }
 
 
                     vector<double> ptsx;
