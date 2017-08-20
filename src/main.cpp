@@ -22,6 +22,7 @@ constexpr double pi() { return M_PI; }
 double deg2rad(double x) { return x * pi() / 180; }
 double rad2deg(double x) { return x * 180 / pi(); }
 
+
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
 // else the empty string "" will be returned.
@@ -161,6 +162,7 @@ vector<double> getXY(double s, double d, vector<double> maps_s, vector<double> m
     return {x,y};
 
 }
+/*
 vector<double> findNearestCarFrontOfEgo(vector<vector<double>> sensor_fusion,int lane,double car_s,int prev_size)
 {
     double min_distance = 10000;
@@ -190,30 +192,337 @@ vector<double> findNearestCarFrontOfEgo(vector<vector<double>> sensor_fusion,int
             }
         }
     }
-    return{car_id,front_distance,front_speed};
+    return{car_id,front_distance,front_speed,lane};
 }
 
 
 vector<double> findNearestCarLeftFrontOfEgo(vector<vector<double>> sensor_fusion,int lane,double car_s,int prev_size)
 {
-    return{0,0};
+    int new_lane = lane-1;
+    double min_distance = 10000;
+    double car_id = -1;
+    double front_speed;
+    double front_distance;
+
+    if(new_lane >= 0)
+    {
+      cout<<"left front lane change needed" <<new_lane;
+    for(int i=0; i <sensor_fusion.size();i++)
+    {
+
+        float d = sensor_fusion[i][6];
+
+        if(d < (2+4*new_lane+2) && d > (2+4*new_lane-2))
+        {
+            int id = sensor_fusion[i][0];
+            double  vx = sensor_fusion[i][3];
+            double vy= sensor_fusion[i][4];
+            double check_speed_front = sqrt(vx*vx+vy*vy);
+            double check_car_s = sensor_fusion[i][5];
+
+            check_car_s+= ((double)prev_size *.02*check_speed_front);
+            if((check_car_s > car_s) && (check_car_s-car_s) < 30) {
+                min_distance = check_car_s - car_s;
+                car_id = id;
+                front_speed = check_speed_front;
+                front_distance = min_distance;
+            }
+        }
+    }
+    }
+    return{car_id,front_distance,front_speed,new_lane};
 }
 
 vector<double> findNearestCarRightFrontOfEgo(vector<vector<double>> sensor_fusion,int lane,double car_s,int prev_size)
 {
-    return {0,0};
+    int new_lane = lane+1;
+    double min_distance = 10000;
+    double car_id = -1;
+    double front_speed;
+    double front_distance;
+
+    if(new_lane <= 3)
+    {
+        for(int i=0; i <sensor_fusion.size();i++)
+        {
+
+            float d = sensor_fusion[i][6];
+
+            if(d < (2+4*new_lane+2) && d > (2+4*new_lane-2))
+            {
+                int id = sensor_fusion[i][0];
+                double  vx = sensor_fusion[i][3];
+                double vy= sensor_fusion[i][4];
+                double check_speed_front = sqrt(vx*vx+vy*vy);
+                double check_car_s = sensor_fusion[i][5];
+
+                check_car_s+= ((double)prev_size *.02*check_speed_front);
+                if((check_car_s > car_s) && (check_car_s-car_s) < 30) {
+                    min_distance = check_car_s - car_s;
+                    car_id = id;
+                    front_speed = check_speed_front;
+                    front_distance = min_distance;
+                }
+            }
+        }
+    }
+    return{car_id,front_distance,front_speed,new_lane};
 }
 
 vector<double> findNearestCarLeftBackOfEgo(vector<vector<double>> sensor_fusion,int lane,double car_s,int prev_size)
 {
-    return {0,0};
+    int new_lane = lane-1;
+    double min_distance = 10000;
+    double car_id = -1;
+    double back_speed;
+    double back_distance;
+
+    if(new_lane >= 0)
+    {
+        for(int i=0; i <sensor_fusion.size();i++)
+        {
+
+            float d = sensor_fusion[i][6];
+
+            if(d < (2+4*new_lane+2) && d > (2+4*new_lane-2))
+            {
+                int id = sensor_fusion[i][0];
+                double  vx = sensor_fusion[i][3];
+                double vy= sensor_fusion[i][4];
+                double check_speed_front = sqrt(vx*vx+vy*vy);
+                double check_car_s = sensor_fusion[i][5];
+
+                check_car_s+= ((double)prev_size *.02*check_speed_front);
+                if((check_car_s < car_s) && (car_s - check_car_s) < 30) {
+                    min_distance = car_s - check_car_s;
+                    car_id = id;
+                    back_speed = check_speed_front;
+                    back_distance = min_distance;
+                }
+            }
+        }
+    }
+    return{car_id,back_distance,back_speed,new_lane};
 }
 
 vector<double> findNearestCarRightBackOfEgo(vector<vector<double>> sensor_fusion,int lane,double car_s,int prev_size)
 {
-    return {0,0};
+    int new_lane = lane+1;
+    double min_distance = 10000;
+    double car_id = -1;
+    double front_speed;
+    double back_distance;
+    cout<<"new_lane" << new_lane;
+
+    if(new_lane >= 0)
+    {
+        for(int i=0; i <sensor_fusion.size();i++)
+        {
+
+            float d = sensor_fusion[i][6];
+
+            if(d < (2+4*new_lane+2) && d > (2+4*new_lane-2))
+            {
+                int id = sensor_fusion[i][0];
+                double  vx = sensor_fusion[i][3];
+                double vy= sensor_fusion[i][4];
+                double check_speed_front = sqrt(vx*vx+vy*vy);
+                double check_car_s = sensor_fusion[i][5];
+
+                check_car_s+= ((double)prev_size *.02*check_speed_front);
+                if((check_car_s < car_s) && (car_s - check_car_s) < 30) {
+                    min_distance = car_s - check_car_s;
+                    car_id = id;
+                    front_speed = check_speed_front;
+                    back_distance = min_distance;
+                }
+            }
+        }
+    }
+    return{car_id,back_distance,front_speed,new_lane};
+}
+ */
+double distance_to_keep_front= 30.0;
+double distance_to_keep_front_side= 40.0;
+double distance_to_keep_back_side= 20.0;
+bool egoTooCloseFront(vector<vector<double>> sensor_fusion,int lane,double car_s,int prev_size)
+{
+
+
+    for(int i=0; i <sensor_fusion.size();i++)
+    {
+
+        float d = sensor_fusion[i][6];
+
+        if(d < (2+4*lane+2) && d > (2+4*lane-2))
+        {
+            int id = sensor_fusion[i][0];
+            double  vx = sensor_fusion[i][3];
+            double vy= sensor_fusion[i][4];
+            double check_speed_front = sqrt(vx*vx+vy*vy);
+            double check_car_s = sensor_fusion[i][5];
+
+            check_car_s+= ((double)prev_size *.02*check_speed_front);
+            if((check_car_s >= car_s)) {
+                if((check_car_s-car_s) < distance_to_keep_front){
+                    cout<<"too close"<<(check_car_s-car_s)<<" lane"<< lane<<endl;
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
+
+bool leftChangePossibleFront(vector<vector<double>> sensor_fusion,int lane,double car_s,int prev_size)
+{
+    int new_lane = lane-1;
+
+    if(new_lane >= 0)
+    {
+
+        for(int i=0; i <sensor_fusion.size();i++)
+        {
+
+            float d = sensor_fusion[i][6];
+
+            if(d < (2+4*new_lane+2) && d > (2+4*new_lane-2))
+            {
+                int id = sensor_fusion[i][0];
+                double  vx = sensor_fusion[i][3];
+                double vy= sensor_fusion[i][4];
+                double check_speed_front = sqrt(vx*vx+vy*vy);
+                double check_car_s = sensor_fusion[i][5];
+
+                check_car_s+= ((double)prev_size *.02*check_speed_front);
+                if((check_car_s >= car_s))
+                {
+                if( (check_car_s-car_s) <= distance_to_keep_front_side) return false;
+
+                }
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
+bool rightChangePossibleFront(vector<vector<double>> sensor_fusion,int lane,double car_s,int prev_size)
+{
+    int new_lane = lane+1;
+
+    if(new_lane <= 2)
+    {
+
+        for(int i=0; i <sensor_fusion.size();i++)
+        {
+
+            float d = sensor_fusion[i][6];
+
+            if(d < (2+4*new_lane+2) && d > (2+4*new_lane-2))
+            {
+                int id = sensor_fusion[i][0];
+                double  vx = sensor_fusion[i][3];
+                double vy= sensor_fusion[i][4];
+                double check_speed_front = sqrt(vx*vx+vy*vy);
+                double check_car_s = sensor_fusion[i][5];
+
+                check_car_s+= ((double)prev_size *.02*check_speed_front);
+                if((check_car_s >= car_s))
+                {
+                    if( (check_car_s-car_s) < distance_to_keep_front_side) return false;
+                }
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
+bool leftChangePossibleBack(vector<vector<double>> sensor_fusion,int lane,double car_s,int prev_size)
+{
+    int new_lane = lane-1;
+
+    if(new_lane >= 0)
+    {
+
+        for(int i=0; i <sensor_fusion.size();i++)
+        {
+
+            float d = sensor_fusion[i][6];
+
+            if(d < (2+4*new_lane+2) && d > (2+4*new_lane-2))
+            {
+                int id = sensor_fusion[i][0];
+                double  vx = sensor_fusion[i][3];
+                double vy= sensor_fusion[i][4];
+                double check_speed_front = sqrt(vx*vx+vy*vy);
+                double check_car_s = sensor_fusion[i][5];
+
+                check_car_s+= ((double)prev_size *.02*check_speed_front);
+                    if((check_car_s <= car_s))
+                    {
+                        if( (car_s-check_car_s) < distance_to_keep_back_side) return false;
+                    }
+
+            }
+        }
+        return true;
+    }
+
+    return false;
+}
+
+bool rightChangePossibleBack(vector<vector<double>> sensor_fusion,int lane,double car_s,int prev_size)
+{
+    int new_lane = lane+1;
+
+
+    if(new_lane <= 2)
+    {
+
+        for(int i=0; i <sensor_fusion.size();i++)
+        {
+
+            float d = sensor_fusion[i][6];
+
+            if(d < (2+4*new_lane+2) && d > (2+4*new_lane-2))
+            {
+                int id = sensor_fusion[i][0];
+                double  vx = sensor_fusion[i][3];
+                double vy= sensor_fusion[i][4];
+                double check_speed_front = sqrt(vx*vx+vy*vy);
+                double check_car_s = sensor_fusion[i][5];
+
+                check_car_s+= ((double)prev_size *.02*check_speed_front);
+                if((check_car_s < car_s))
+                {
+                    if( (car_s-check_car_s) <= distance_to_keep_back_side) return false;
+                    else return true;
+                }
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
+int checklane(double d){
+    int lane = 0;
+    if (d >= 0 and d < 4)
+    {
+        lane = 0;
+    }
+    else if (d>=4 and d < 8)
+    {
+        lane  = 1;
+    }
+    else {
+        lane = 2;
+    }
+    return lane;
+}
 
 int main() {
     uWS::Hub h;
@@ -229,6 +538,7 @@ int main() {
     string map_file_ = "../data/highway_map.csv";
     // The max s value before wrapping around the track back to 0
     double max_s = 6945.554;
+
 
     ifstream in_map_(map_file_.c_str(), ifstream::in);
 
@@ -253,7 +563,12 @@ int main() {
     }
     int lane =  1;
     double  ref_vel = 0;
-    h.onMessage([&ref_vel,&lane,&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+    double max_velocity = 49.5;
+    bool lane_change_started = false;
+    bool lane_change_completed = true;
+    bool prev_lane = 1;
+
+    h.onMessage([&ref_vel,&max_velocity,&lane_change_started,&lane_change_completed,&prev_lane,&lane,&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                                                                                                                         uWS::OpCode opCode) {
         // "42" at the start of the message means there's a websocket message event.
         // The 4 signifies a websocket message
@@ -300,18 +615,68 @@ int main() {
                     bool lane_change_needed = false;
 
                     double check_speed_front = 0.0;
+                    int curr_lane = checklane(car_d);
+                    //cout<<"The current lane is"<<curr_lane<<endl;
+                    auto front_car = egoTooCloseFront(sensor_fusion,curr_lane,car_s,prev_size);
+                    if(front_car) {
 
-                    auto front_car = findNearestCarFrontOfEgo(sensor_fusion,lane,car_s,prev_size);
-                    if(front_car[0] != -1) {
-                        lane_change_needed = true;
+                        if( ref_vel < max_velocity) {
+                            lane_change_needed = true;
+                        }
                         too_close = true;
                     }
 
+                    if(lane_change_started )
+                    {
+                        if(curr_lane == lane)
+                        {
+                            lane_change_started = false;
+                            lane_change_completed = true;
+                            //cout<<"Lane change completed";
+                        }
+                    }
+
+
                     if(too_close == true)
                     {
-                        ref_vel -= .224;
+                        ref_vel -= .324;
+
+                        if(lane_change_needed && !lane_change_started)
+                        {
+                            auto right_car_front = rightChangePossibleFront(sensor_fusion,curr_lane,car_s,prev_size);
+                            auto right_car_back = rightChangePossibleBack(sensor_fusion,curr_lane,car_s,prev_size);
+                            if(lane_change_needed and right_car_front and right_car_back)
+                            {
+                               // cout<<"right lane change started"<<endl;
+                                prev_lane = lane;
+                                lane = lane+1;
+                                lane_change_started = true;
+                                lane_change_completed = false;
+                                lane_change_needed = false;
+
+                            }
+                        }
+
+                        if(lane_change_needed && !lane_change_started)
+                        {
+                            auto left_car_front = leftChangePossibleFront(sensor_fusion,curr_lane,car_s,prev_size);
+                            auto left_car_back = leftChangePossibleBack(sensor_fusion,curr_lane,car_s,prev_size);
+                            if(lane_change_needed and left_car_front and left_car_back)
+                            {
+                               // cout<<"left lane change started"<<endl;
+                                prev_lane = lane;
+                                lane = lane-1;
+                                lane_change_started = true;
+                                lane_change_completed = false;
+                                lane_change_needed = false;
+                            }
+
+                        }
+                        // left lane change was not performed, so check right
+
+
                     }
-                    else if(ref_vel < 49.5)
+                    else if(ref_vel < max_velocity)
                     {
                         ref_vel+=.224;
                     }
