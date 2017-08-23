@@ -618,6 +618,7 @@ int main() {
                     int curr_lane = checklane(car_d);
                     //cout<<"The current lane is"<<curr_lane<<endl;
                     auto front_car = egoTooCloseFront(sensor_fusion,curr_lane,car_s,prev_size);
+                    front_car = false;
                     if(front_car) {
 
                         if( ref_vel < max_velocity) {
